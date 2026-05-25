@@ -143,6 +143,15 @@ dotnet test OrdersApi.slnx
 | **Testes de Integração** | `WebApplicationFactory` testando a API end-to-end (18 cenários) |
 | **GitHub Actions CI** | Pipeline de build + test automático em push/PR |
 
+## Decisões de arquitetura — o que não foi incluído (e por quê)
+
+| Padrão | Motivo para não adotar |
+|--------|------------------------|
+| **CQRS / MediatR** | O domínio tem 4 endpoints e fluxo linear — a indirection de handlers/pipelines não se justifica. Trivial de adicionar se o número de use cases crescer. |
+| **Event Sourcing** | Não há requisito de auditoria temporal nem replay de eventos. State-based com EF Core é a escolha pragmática para este domínio. |
+| **OpenTelemetry** | O projeto já tem Serilog estruturado + Correlation ID. Em produção com múltiplos serviços, a troca para OpenTelemetry com exportação para Jaeger/Application Insights seria o próximo passo. |
+| **Contract Tests (Pact)** | Fazem sentido quando há consumers externos com contratos explícitos. API solo sem consumidores conhecidos — o ganho não compensa a complexidade. |
+
 ## Testes unitários
 
 11 cenários cobrindo a camada de serviço com `FakeOrderRepository`:
