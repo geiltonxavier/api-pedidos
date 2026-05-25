@@ -17,6 +17,10 @@ public class OrdersDbContext : DbContext
         modelBuilder.Entity<Order>(b =>
         {
             b.HasKey(o => o.Id);
+
+            b.Navigation(o => o.Items)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
             b.OwnsMany(o => o.Items, ib =>
             {
                 ib.WithOwner().HasForeignKey("OrderId");

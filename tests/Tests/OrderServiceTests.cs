@@ -192,6 +192,24 @@ public class OrderServiceTests
     }
 
     [Fact]
+    public async Task RemoveItem_LastItem_ReturnsFalse()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Standard, new List<CreateItemDto>
+        {
+            new("Unico Item", 1, 50m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+        var order = await svc.GetOrderAsync(created.OrderId);
+        var itemId = order!.Items[0].Id;
+
+        var result = await svc.RemoveItemAsync(created.OrderId, itemId);
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public async Task RemoveItem_NonExistentItem_ReturnsFalse()
     {
         var svc = CreateService();

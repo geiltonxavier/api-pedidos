@@ -26,10 +26,10 @@ public class OrderService : IOrderService
         var items = dto.ToDomainItems();
         var order = new Order
         {
-            Type = dto.Type,
-            Items = items
+            Type = dto.Type
         };
 
+        order.AddItems(items);
         order.RecalculateSubTotal();
 
         var strategy = _factory.GetStrategy(dto.Type);
@@ -72,10 +72,11 @@ public class OrderService : IOrderService
         var order = await _repo.GetByIdAsync(orderId, ct);
         if (order is null) return false;
 
-        var item = order.Items.FirstOrDefault(i => i.Id == itemId);
-        if (item is null) return false;
+        if (order.Items.Count <= 1)
+            return false;
 
-        order.Items.Remove(item);
+        if (!order.RemoveItem(itemId))
+            return false;
 
         order.RecalculateSubTotal();
         var strategy = _factory.GetStrategy(order.Type);

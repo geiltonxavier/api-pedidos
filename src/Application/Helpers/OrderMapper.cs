@@ -24,7 +24,7 @@ public static class OrderMapper
             order.Type,
             order.SubTotal,
             order.Total,
-            order.SubTotal - order.Total,
+            Math.Abs(order.SubTotal - order.Total),
             order.Items.Select(i => new OrderItemDto(i.Id, i.Description, i.Quantity, i.UnitPrice, i.Total)).ToList());
     }
 }

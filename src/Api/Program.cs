@@ -77,9 +77,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
-app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseRateLimiter();
 app.UseRouting();
 app.MapControllers();

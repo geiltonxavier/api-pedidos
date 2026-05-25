@@ -1,15 +1,16 @@
 using System;
-using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.Filters;
 
 public class IdempotencyFilter : IAsyncActionFilter
 {
-    private static readonly ConcurrentDictionary<string, CachedResponse> _cache = new();
+    private static readonly MemoryCache _cache = new(new MemoryCacheOptions());
+    private static readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
@@ -22,11 +23,11 @@ public class IdempotencyFilter : IAsyncActionFilter
 
         var idempotencyKey = key.ToString();
 
-        if (_cache.TryGetValue(idempotencyKey, out var cached))
+        if (_cache.TryGetValue(idempotencyKey, out CachedResponse? cached))
         {
             context.Result = new ContentResult
             {
-                Content = cached.Body,
+                Content = cached!.Body,
                 ContentType = "application/json",
                 StatusCode = cached.StatusCode
             };
@@ -39,7 +40,7 @@ public class IdempotencyFilter : IAsyncActionFilter
         if (executedContext.Result is ObjectResult objectResult)
         {
             var body = JsonSerializer.Serialize(objectResult.Value);
-            _cache.TryAdd(idempotencyKey, new CachedResponse(objectResult.StatusCode ?? 200, body));
+            _cache.Set(idempotencyKey, new CachedResponse(objectResult.StatusCode ?? 200, body), _ttl);
         }
     }
 
