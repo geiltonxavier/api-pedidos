@@ -3,7 +3,7 @@ using Core.Enums;
 
 namespace Application.Discounts;
 
-public interface IDiscountStrategy
+public interface IPricingStrategy
 {
     OrderType Type { get; }
     decimal CalculateTotal(Order order);

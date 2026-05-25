@@ -41,10 +41,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<Application.Validators.Crea
 
 builder.Services.AddDbContext<OrdersDbContext>(opt => opt.UseInMemoryDatabase("OrdersDb"));
 
-// register discount strategies
-builder.Services.AddSingleton<IDiscountStrategy, StandardDiscount>();
-builder.Services.AddSingleton<IDiscountStrategy, ExpressDiscount>();
-builder.Services.AddSingleton<IDiscountStrategy, SubscriptionDiscount>();
+// register pricing strategies
+builder.Services.AddSingleton<IPricingStrategy, StandardDiscount>();
+builder.Services.AddSingleton<IPricingStrategy, ExpressDiscount>();
+builder.Services.AddSingleton<IPricingStrategy, SubscriptionDiscount>();
 builder.Services.AddSingleton<DiscountFactory>();
 
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -58,12 +58,15 @@ builder.Services.AddHealthChecks();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("fixed", opt =>
-    {
-        opt.PermitLimit = 100;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueLimit = 0;
-    });
+    options.AddPolicy("fixed", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 var app = builder.Build();

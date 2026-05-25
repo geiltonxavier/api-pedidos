@@ -9,7 +9,7 @@ public class Order
 {
     private readonly List<OrderItem> _items = new();
 
-    public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.CreateVersion7();
     public OrderType Type { get; init; }
     public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
     public decimal SubTotal { get; private set; }

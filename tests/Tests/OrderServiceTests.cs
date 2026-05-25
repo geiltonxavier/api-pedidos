@@ -45,7 +45,7 @@ public class OrderServiceTests
 
     private OrderService CreateService()
     {
-        var strategies = new List<IDiscountStrategy>
+        var strategies = new List<IPricingStrategy>
         {
             new StandardDiscount(),
             new ExpressDiscount(),

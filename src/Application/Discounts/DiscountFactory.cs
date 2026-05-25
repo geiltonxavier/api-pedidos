@@ -8,17 +8,17 @@ namespace Application.Discounts;
 
 public sealed class DiscountFactory
 {
-    private readonly IEnumerable<IDiscountStrategy> _strategies;
+    private readonly IEnumerable<IPricingStrategy> _strategies;
 
-    public DiscountFactory(IEnumerable<IDiscountStrategy> strategies)
+    public DiscountFactory(IEnumerable<IPricingStrategy> strategies)
     {
         _strategies = strategies;
     }
 
-    public IDiscountStrategy GetStrategy(OrderType type)
+    public IPricingStrategy GetStrategy(OrderType type)
     {
         var s = _strategies.FirstOrDefault(x => x.Type == type);
-        if (s is null) throw new InvalidOperationException("No discount strategy registered for type " + type);
+        if (s is null) throw new InvalidOperationException("No pricing strategy registered for type " + type);
         return s;
     }
 }
