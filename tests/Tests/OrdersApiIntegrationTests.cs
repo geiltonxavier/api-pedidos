@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Application.DTO;
+using Application.Interfaces;
+using Core.Entities;
 using Core.Enums;
+using Core.Exceptions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Tests;
@@ -265,5 +271,123 @@ public sealed class OrdersApiIntegrationTests : IClassFixture<WebApplicationFact
         var response = await _client.GetAsync("/health");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+}
+
+// ── CONCORRÊNCIA (409 Conflict) ─────────────────────────────────────────
+
+/// <summary>
+/// Decorator que envolve o repositório real e lança ConcurrencyConflictException
+/// no UpdateAsync, simulando um conflito de RowVersion.
+/// </summary>
+internal sealed class ConcurrencyConflictRepositoryDecorator : IOrderRepository
+{
+    private readonly IOrderRepository _inner;
+
+    public ConcurrencyConflictRepositoryDecorator(IOrderRepository inner)
+        => _inner = inner;
+
+    public Task AddAsync(Order order, CancellationToken ct = default)
+        => _inner.AddAsync(order, ct);
+
+    public Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => _inner.GetByIdAsync(id, ct);
+
+    public Task UpdateAsync(Order order, CancellationToken ct = default)
+        => throw new ConcurrencyConflictException("O pedido foi modificado por outra operação.");
+}
+
+public sealed class ConcurrencyIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly WebApplicationFactory<Program> _factory;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    public ConcurrencyIntegrationTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    private HttpClient CreateConcurrencyClient()
+    {
+        return _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Remove o registro original e adiciona o decorator que lança ConcurrencyConflictException
+                var descriptor = services.Single(d => d.ServiceType == typeof(IOrderRepository));
+                services.Remove(descriptor);
+
+                // Registra a implementação real como "inner"
+                services.AddScoped(descriptor.ImplementationType!);
+
+                // Registra o decorator que envolve a implementação real
+                services.AddScoped<IOrderRepository>(sp =>
+                {
+                    var inner = (IOrderRepository)sp.GetRequiredService(descriptor.ImplementationType!);
+                    return new ConcurrencyConflictRepositoryDecorator(inner);
+                });
+            });
+        }).CreateClient();
+    }
+
+    [Fact]
+    public async Task Put_ConflitoConcorrencia_Retorna409()
+    {
+        // 1 — cria pedido usando o client normal (repositório real)
+        var normalClient = _factory.CreateClient();
+        var dto = new CreateOrderDto(
+            OrderType.Standard,
+            new List<CreateItemDto> { new("Item A", 2, 50m) });
+
+        var createResponse = await normalClient.PostAsJsonAsync("/v1/orders", dto);
+        var created = await createResponse.Content.ReadFromJsonAsync<CreatedOrderResponse>(JsonOptions);
+        var orderId = created!.OrderId;
+
+        var order = await normalClient.GetFromJsonAsync<OrderSummaryDto>($"/v1/orders/{orderId}", JsonOptions);
+        var itemId = order!.Items[0].Id;
+
+        // 2 — tenta atualizar com client que simula conflito de concorrência
+        var conflictClient = CreateConcurrencyClient();
+        var updateDto = new UpdateItemDto("Item Atualizado", 3, 60m);
+
+        var putResponse = await conflictClient.PutAsJsonAsync($"/v1/orders/{orderId}/items/{itemId}", updateDto);
+
+        Assert.Equal(HttpStatusCode.Conflict, putResponse.StatusCode);
+
+        var problem = await putResponse.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        Assert.Equal(409, problem.GetProperty("status").GetInt32());
+        Assert.Equal("Conflito de concorrência", problem.GetProperty("title").GetString());
+    }
+
+    [Fact]
+    public async Task Delete_ConflitoConcorrencia_Retorna409()
+    {
+        // 1 — cria pedido com 2 itens usando o client normal
+        var normalClient = _factory.CreateClient();
+        var dto = new CreateOrderDto(
+            OrderType.Standard,
+            new List<CreateItemDto>
+            {
+                new("Item 1", 1, 10m),
+                new("Item 2", 1, 20m)
+            });
+
+        var createResponse = await normalClient.PostAsJsonAsync("/v1/orders", dto);
+        var created = await createResponse.Content.ReadFromJsonAsync<CreatedOrderResponse>(JsonOptions);
+        var orderId = created!.OrderId;
+
+        var order = await normalClient.GetFromJsonAsync<OrderSummaryDto>($"/v1/orders/{orderId}", JsonOptions);
+        var itemId = order!.Items[0].Id;
+
+        // 2 — tenta remover com client que simula conflito
+        var conflictClient = CreateConcurrencyClient();
+
+        var deleteResponse = await conflictClient.DeleteAsync($"/v1/orders/{orderId}/items/{itemId}");
+
+        Assert.Equal(HttpStatusCode.Conflict, deleteResponse.StatusCode);
     }
 }

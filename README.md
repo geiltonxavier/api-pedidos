@@ -14,7 +14,7 @@ src/
 └── Api/            → Controllers, middlewares, filtros e configuração da aplicação
 
 tests/
-└── Tests/          → Testes unitários (11) e de integração (16) com xUnit
+└── Tests/          → Testes unitários (11) e de integração (18) com xUnit
 ```
 
 ## Regras de negócio — Tipos de pedido
@@ -140,7 +140,7 @@ dotnet test OrdersApi.slnx
 | **Swagger UI** | Documentação interativa dos endpoints via OpenAPI |
 | **Dockerfile** | Multi-stage build (SDK → runtime), pronto para CI/CD |
 | **Concorrência Otimista** | `RowVersion` no EF Core — conflitos retornam `409 Conflict` |
-| **Testes de Integração** | `WebApplicationFactory` testando a API end-to-end (16 cenários) |
+| **Testes de Integração** | `WebApplicationFactory` testando a API end-to-end (18 cenários) |
 | **GitHub Actions CI** | Pipeline de build + test automático em push/PR |
 
 ## Testes unitários
@@ -163,7 +163,7 @@ dotnet test OrdersApi.slnx
 
 ## Testes de integração
 
-16 cenários testando a API de ponta a ponta via `WebApplicationFactory<Program>` (sem servidor real):
+18 cenários testando a API de ponta a ponta via `WebApplicationFactory<Program>` (sem servidor real):
 
 | # | Cenário |
 |---|--------|
@@ -178,11 +178,13 @@ dotnet test OrdersApi.slnx
 | 9 | PUT atualiza item → 200 com novo valor |
 | 10 | PUT pedido inexistente → 404 |
 | 11 | PUT item inexistente → 404 |
-| 12 | DELETE remove item → 204 |
-| 13 | DELETE último item → 404 (invariante de domínio) |
-| 14 | DELETE pedido inexistente → 404 |
-| 15 | POST mesma Idempotency-Key → mesmo OrderId |
-| 16 | Health check → 200 |
+| 12 | PUT conflito de concorrência → 409 (RowVersion) |
+| 13 | DELETE remove item → 204 |
+| 14 | DELETE último item → 404 (invariante de domínio) |
+| 15 | DELETE pedido inexistente → 404 |
+| 16 | DELETE conflito de concorrência → 409 (RowVersion) |
+| 17 | POST mesma Idempotency-Key → mesmo OrderId |
+| 18 | Health check → 200 |
 
 ## Postman
 
