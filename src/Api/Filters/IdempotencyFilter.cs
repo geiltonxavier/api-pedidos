@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.Filters;
 
-public class IdempotencyFilter : IAsyncActionFilter
+public sealed class IdempotencyFilter : IAsyncActionFilter
 {
     private static readonly MemoryCache _cache = new(new MemoryCacheOptions());
     private static readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);

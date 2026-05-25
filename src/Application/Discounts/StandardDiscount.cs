@@ -3,7 +3,7 @@ using Core.Enums;
 
 namespace Application.Discounts;
 
-public class StandardDiscount : IDiscountStrategy
+public sealed class StandardDiscount : IDiscountStrategy
 {
     public OrderType Type => OrderType.Standard;
 

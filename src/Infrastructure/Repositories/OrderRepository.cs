@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class OrderRepository : IOrderRepository
+public sealed class OrderRepository : IOrderRepository
 {
     private readonly OrdersDbContext _db;
 

@@ -6,7 +6,7 @@ using Core.Entities;
 
 namespace Application.Discounts;
 
-public class DiscountFactory
+public sealed class DiscountFactory
 {
     private readonly IEnumerable<IDiscountStrategy> _strategies;
 

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Api.Middlewares;
 
-public class GlobalExceptionHandler : IExceptionHandler
+public sealed class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
 

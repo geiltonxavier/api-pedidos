@@ -6,7 +6,7 @@ using Serilog.Context;
 
 namespace Api.Middlewares;
 
-public class CorrelationIdMiddleware
+public sealed class CorrelationIdMiddleware
 {
     private const string Header = "X-Correlation-Id";
     private readonly RequestDelegate _next;

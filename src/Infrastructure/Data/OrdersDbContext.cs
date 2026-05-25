@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-public class OrdersDbContext : DbContext
+public sealed class OrdersDbContext : DbContext
 {
     public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options)
     {
@@ -21,11 +21,15 @@ public class OrdersDbContext : DbContext
             b.Navigation(o => o.Items)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+            b.Property(o => o.SubTotal).HasPrecision(18, 2);
+            b.Property(o => o.Total).HasPrecision(18, 2);
+
             b.OwnsMany(o => o.Items, ib =>
             {
                 ib.WithOwner().HasForeignKey("OrderId");
                 ib.Property<Guid>("Id");
                 ib.HasKey("Id");
+                ib.Property(i => i.UnitPrice).HasPrecision(18, 2);
             });
         });
     }

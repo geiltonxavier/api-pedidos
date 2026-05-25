@@ -10,7 +10,7 @@ using Core.Entities;
 
 namespace Application.Services;
 
-public class OrderService : IOrderService
+public sealed class OrderService : IOrderService
 {
     private readonly IOrderRepository _repo;
     private readonly DiscountFactory _factory;
