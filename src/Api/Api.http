@@ -3,7 +3,7 @@
 
 ### Criar pedido standard
 # @name Create
-POST {{Api_HostAddress}}/orders
+POST {{Api_HostAddress}}/v1/orders
 Content-Type: application/json
 Idempotency-Key: {{$guid}}
 
@@ -16,7 +16,7 @@ Idempotency-Key: {{$guid}}
 }
 
 ### Criar pedido express (acréscimo de 15%)
-POST {{Api_HostAddress}}/orders
+POST {{Api_HostAddress}}/v1/orders
 Content-Type: application/json
 
 {
@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ### Criar pedido subscription (desconto de 10%)
-POST {{Api_HostAddress}}/orders
+POST {{Api_HostAddress}}/v1/orders
 Content-Type: application/json
 
 {
@@ -38,11 +38,11 @@ Content-Type: application/json
 }
 
 ### Consultar pedido
-GET {{Api_HostAddress}}/orders/{{orderId}}
+GET {{Api_HostAddress}}/v1/orders/{{orderId}}
 Accept: application/json
 
 ### Atualizar item do pedido
-PUT {{Api_HostAddress}}/orders/{{orderId}}/items/<ITEM_ID>
+PUT {{Api_HostAddress}}/v1/orders/{{orderId}}/items/<ITEM_ID>
 Content-Type: application/json
 
 {
@@ -52,4 +52,4 @@ Content-Type: application/json
 }
 
 ### Remover item do pedido
-DELETE {{Api_HostAddress}}/orders/{{orderId}}/items/<ITEM_ID>
+DELETE {{Api_HostAddress}}/v1/orders/{{orderId}}/items/<ITEM_ID>

@@ -1,14 +1,19 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Api.Filters;
 using Application.DTO;
 using Application.Interfaces;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/orders")]
+[EnableRateLimiting("fixed")]
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _service;
@@ -23,7 +28,7 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken ct)
     {
         var response = await _service.CreateOrderAsync(dto, ct);
-        return CreatedAtAction(nameof(GetById), new { orderId = response.OrderId }, response);
+        return CreatedAtAction(nameof(GetById), new { orderId = response.OrderId, version = "1.0" }, response);
     }
 
     [HttpGet("{orderId:guid}")]
