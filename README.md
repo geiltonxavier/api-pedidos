@@ -1,78 +1,137 @@
-# Orders API (Clean Architecture) - .NET 10
+# Orders API — .NET 10
 
-Projects:
-- src/Core: Domain entities (Order, OrderItem, OrderType)
-- src/Application: Services and discount strategies (Strategy Pattern)
-- src/Infrastructure: EF Core InMemory DbContext and repository
-- src/Api: ASP.NET Core Web API (wires DI and endpoints)
-- tests/Tests: xUnit unit tests for the Application service layer
+API para gerenciamento de pedidos de uma loja online, com cálculo automático de descontos por tipo de pedido.
 
-Discount rules implemented (Strategy Pattern):
-- Standard: no discount
-- Express: 15% surcharge (fast delivery fee)
-- Subscription: 10% discount
+## Arquitetura
 
-Quick start (macOS / terminal):
+Projeto estruturado em **Clean Architecture** com separação clara de responsabilidades:
 
-1. Build everything:
+```
+src/
+├── Core/           → Entidades de domínio (Order, OrderItem) e enums (OrderType)
+├── Application/    → Serviços, DTOs, interfaces, estratégias de desconto e mapeamento
+├── Infrastructure/ → Persistência com EF Core (InMemory) e implementação do repositório
+└── Api/            → Controllers, middlewares, filtros e configuração da aplicação
 
-```bash
-cd /Users/geiltonxavier/coding/api-pedidos
-dotnet build
+tests/
+└── Tests/          → Testes unitários com xUnit
 ```
 
-2. Run the API (from workspace root):
+## Regras de negócio — Tipos de pedido
 
-```bash
-cd src/Api
-dotnet run
-```
+Cada pedido possui um tipo que determina o cálculo do valor total (padrão **Strategy Pattern**):
 
-The API exposes the following endpoints:
+| Tipo (enum) | Valor | Regra |
+|-------------|-------|-------|
+| `Standard`  | 0     | Sem desconto |
+| `Express`   | 1     | Acréscimo de 15% (taxa de entrega rápida) |
+| `Subscription` | 2  | Desconto de 10% (cliente assinante) |
 
-- `POST /api/orders`
-  - Request body: order type and items list
-  - Response: created order ID and `Location` header
+## Endpoints
+
+### `POST /orders` — Criar pedido
 
 ```json
+// Request
 {
-  "type": "Express",
+  "type": 0,
   "items": [
-    { "description": "Product A", "quantity": 1, "unitPrice": 100.0 }
+    { "description": "Camiseta", "quantity": 2, "unitPrice": 49.90 },
+    { "description": "Boné", "quantity": 1, "unitPrice": 29.90 }
+  ]
+}
+
+// Response (201 Created)
+{ "orderId": "guid-do-pedido" }
+```
+
+**Headers opcionais:**
+- `Idempotency-Key: <uuid>` — evita criação duplicada em caso de retry
+
+### `GET /orders/{orderId}` — Consultar resumo do pedido
+
+```json
+// Response (200 OK)
+{
+  "id": "guid-do-pedido",
+  "type": 0,
+  "subTotal": 129.70,
+  "total": 129.70,
+  "discountValue": 0.00,
+  "items": [
+    { "id": "guid-item", "description": "Camiseta", "quantity": 2, "unitPrice": 49.90, "total": 99.80 },
+    { "id": "guid-item", "description": "Boné", "quantity": 1, "unitPrice": 29.90, "total": 29.90 }
   ]
 }
 ```
 
-- `GET /api/orders/{orderId}`
-  - Response: order summary with subtotal, total and discount value
+### `PUT /orders/{orderId}/items/{itemId}` — Atualizar item
 
 ```json
-{
-  "id": "<order-id>",
-  "type": "Express",
-  "subTotal": 100.0,
-  "total": 115.0,
-  "discountValue": 15.0,
-  "items": [
-    { "description": "Product A", "quantity": 1, "unitPrice": 100.0, "total": 100.0 }
-  ]
-}
+// Request
+{ "description": "Camiseta G", "quantity": 3, "unitPrice": 54.90 }
+
+// Response (200 OK) — retorna o resumo atualizado do pedido
 ```
 
-3. Run tests:
+### `DELETE /orders/{orderId}/items/{itemId}` — Remover item
+
+```
+// Response (204 No Content)
+```
+
+## Como executar
+
+### Pré-requisitos
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+
+### Rodar a API
 
 ```bash
-cd /Users/geiltonxavier/coding/api-pedidos
-dotnet test
+dotnet run --project src/Api/Api.csproj
 ```
 
-Notes:
-- Infrastructure uses EF Core InMemory provider.
-- Service layer is fully unit-tested (xUnit) covering Standard, Express and Subscription flows.
+A API estará disponível em `http://localhost:5024`.
 
-If you want, I can now:
-- Add more endpoints (GET/list)
-- Persist to a real database
-- Add integration tests or CI pipeline
+- **Swagger UI:** http://localhost:5024/swagger
+- **OpenAPI doc:** http://localhost:5024/openapi/v1.json
 
-*** End of README ***
+### Rodar os testes
+
+```bash
+dotnet test tests/Tests/Tests.csproj
+```
+
+## Funcionalidades técnicas
+
+| Feature | Descrição |
+|---------|-----------|
+| **Clean Architecture** | Camadas Core → Application → Infrastructure → Api |
+| **Strategy Pattern** | Cálculo de desconto desacoplado com `IDiscountStrategy` |
+| **EF Core InMemory** | Banco de dados em memória (sem dependência externa) |
+| **Idempotência** | Header `Idempotency-Key` no POST previne pedidos duplicados |
+| **Correlation ID** | Header `X-Correlation-Id` propagado em todos os logs da request |
+| **Serilog** | Logging estruturado com enriquecimento de contexto |
+| **Swagger UI** | Documentação interativa dos endpoints |
+
+## Testes unitários
+
+Cobertura dos cenários da camada de serviço:
+
+- Criação de pedido **Standard** — sem desconto
+- Criação de pedido **Express** — acréscimo de 15%
+- Criação de pedido **Subscription** — desconto de 10%
+- Consulta de pedido com validação de `DiscountValue`
+- Consulta de pedido inexistente retorna `null`
+
+## Postman
+
+Collection completa disponível em `docs/Orders API.postman_collection.json`. Importe no Postman para testar todos os endpoints.
+
+## Tecnologias
+
+- .NET 10 / ASP.NET Core
+- Entity Framework Core (InMemory)
+- Serilog
+- xUnit
+- Swagger / OpenAPI

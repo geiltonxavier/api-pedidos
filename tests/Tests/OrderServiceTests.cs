@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.Discounts;
 using Application.DTO;
@@ -126,5 +127,101 @@ public class OrderServiceTests
         var summary = await svc.GetOrderAsync(Guid.NewGuid());
 
         Assert.Null(summary);
+    }
+
+    [Fact]
+    public async Task UpdateItem_ChangesValuesAndRecalculatesTotal()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Standard, new List<CreateItemDto>
+        {
+            new("Camiseta", 1, 50m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+        var order = await svc.GetOrderAsync(created.OrderId);
+        var itemId = order!.Items[0].Id;
+
+        var updated = await svc.UpdateItemAsync(created.OrderId, itemId, new UpdateItemDto("Camiseta G", 3, 60m));
+
+        Assert.NotNull(updated);
+        Assert.Equal(180m, updated!.SubTotal);
+        Assert.Equal(180m, updated.Total);
+        Assert.Equal("Camiseta G", updated.Items[0].Description);
+    }
+
+    [Fact]
+    public async Task UpdateItem_NonExistentItem_ReturnsNull()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Standard, new List<CreateItemDto>
+        {
+            new("Produto", 1, 10m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+
+        var result = await svc.UpdateItemAsync(created.OrderId, Guid.NewGuid(), new UpdateItemDto("X", 1, 10m));
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RemoveItem_RemovesAndRecalculatesTotal()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Subscription, new List<CreateItemDto>
+        {
+            new("Item A", 1, 100m),
+            new("Item B", 1, 50m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+        var order = await svc.GetOrderAsync(created.OrderId);
+        var itemToRemove = order!.Items.First(i => i.Description == "Item B").Id;
+
+        var removed = await svc.RemoveItemAsync(created.OrderId, itemToRemove);
+
+        Assert.True(removed);
+
+        var updated = await svc.GetOrderAsync(created.OrderId);
+        Assert.Single(updated!.Items);
+        Assert.Equal(100m, updated.SubTotal);
+        Assert.Equal(90m, updated.Total);
+    }
+
+    [Fact]
+    public async Task RemoveItem_NonExistentItem_ReturnsFalse()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Standard, new List<CreateItemDto>
+        {
+            new("Produto", 1, 10m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+
+        var result = await svc.RemoveItemAsync(created.OrderId, Guid.NewGuid());
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task UpdateItem_Express_RecalculatesWithSurcharge()
+    {
+        var svc = CreateService();
+        var dto = new CreateOrderDto(OrderType.Express, new List<CreateItemDto>
+        {
+            new("Produto", 1, 100m)
+        });
+
+        var created = await svc.CreateOrderAsync(dto);
+        var order = await svc.GetOrderAsync(created.OrderId);
+        var itemId = order!.Items[0].Id;
+
+        var updated = await svc.UpdateItemAsync(created.OrderId, itemId, new UpdateItemDto("Produto Atualizado", 2, 100m));
+
+        Assert.Equal(200m, updated!.SubTotal);
+        Assert.Equal(230m, updated.Total);
     }
 }
