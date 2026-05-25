@@ -24,6 +24,8 @@ public class OrderRepository : IOrderRepository
 
     public async Task<Order?> GetByIdAsync(Guid id)
     {
-        return await _db.Orders.SingleOrDefaultAsync(o => o.Id == id);
+        return await _db.Orders
+            .Include(o => o.Items)
+            .SingleOrDefaultAsync(o => o.Id == id);
     }
 }
