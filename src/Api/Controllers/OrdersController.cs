@@ -53,6 +53,7 @@ public sealed class OrdersController : ControllerBase
     [ProducesResponseType(typeof(OrderSummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateItem(Guid orderId, Guid itemId, [FromBody] UpdateItemDto dto, CancellationToken ct)
     {
         var result = await _service.UpdateItemAsync(orderId, itemId, dto, ct);
@@ -67,6 +68,7 @@ public sealed class OrdersController : ControllerBase
     [HttpDelete("{orderId:guid}/items/{itemId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> RemoveItem(Guid orderId, Guid itemId, CancellationToken ct)
     {
         var removed = await _service.RemoveItemAsync(orderId, itemId, ct);

@@ -14,7 +14,7 @@ src/
 └── Api/            → Controllers, middlewares, filtros e configuração da aplicação
 
 tests/
-└── Tests/          → Testes unitários com xUnit (11 cenários)
+└── Tests/          → Testes unitários (11) e de integração (16) com xUnit
 ```
 
 ## Regras de negócio — Tipos de pedido
@@ -139,6 +139,8 @@ dotnet test OrdersApi.slnx
 | **CancellationToken** | Propagado em toda a cadeia (Controller → Service → Repository) |
 | **Swagger UI** | Documentação interativa dos endpoints via OpenAPI |
 | **Dockerfile** | Multi-stage build (SDK → runtime), pronto para CI/CD |
+| **Concorrência Otimista** | `RowVersion` no EF Core — conflitos retornam `409 Conflict` |
+| **Testes de Integração** | `WebApplicationFactory` testando a API end-to-end (16 cenários) |
 | **GitHub Actions CI** | Pipeline de build + test automático em push/PR |
 
 ## Testes unitários
@@ -158,6 +160,29 @@ dotnet test OrdersApi.slnx
 | 9 | Remover último item do pedido é bloqueado (invariante de domínio) |
 | 10 | Remover item inexistente retorna `false` |
 | 11 | Atualizar item de pedido **Express** recalcula acréscimo |
+
+## Testes de integração
+
+16 cenários testando a API de ponta a ponta via `WebApplicationFactory<Program>` (sem servidor real):
+
+| # | Cenário |
+|---|--------|
+| 1 | POST pedido válido → 201 com Location header |
+| 2 | POST sem itens → 400 (FluentValidation) |
+| 3 | POST quantidade zero → 400 |
+| 4 | POST preço negativo → 400 |
+| 5 | POST Express → sobretaxa aplicada |
+| 6 | POST Subscription → desconto aplicado |
+| 7 | GET pedido existente → 200 com dados completos |
+| 8 | GET pedido inexistente → 404 |
+| 9 | PUT atualiza item → 200 com novo valor |
+| 10 | PUT pedido inexistente → 404 |
+| 11 | PUT item inexistente → 404 |
+| 12 | DELETE remove item → 204 |
+| 13 | DELETE último item → 404 (invariante de domínio) |
+| 14 | DELETE pedido inexistente → 404 |
+| 15 | POST mesma Idempotency-Key → mesmo OrderId |
+| 16 | Health check → 200 |
 
 ## Postman
 

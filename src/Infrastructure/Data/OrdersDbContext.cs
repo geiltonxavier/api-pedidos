@@ -24,6 +24,9 @@ public sealed class OrdersDbContext : DbContext
             b.Property(o => o.SubTotal).HasPrecision(18, 2);
             b.Property(o => o.Total).HasPrecision(18, 2);
 
+            b.Property(o => o.RowVersion)
+                .IsRowVersion();
+
             b.OwnsMany(o => o.Items, ib =>
             {
                 ib.WithOwner().HasForeignKey("OrderId");

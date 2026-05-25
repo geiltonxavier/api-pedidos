@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Core.Entities;
+using Core.Exceptions;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,15 @@ public sealed class OrderRepository : IOrderRepository
 
     public async Task UpdateAsync(Order order, CancellationToken ct = default)
     {
-        _db.Orders.Update(order);
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            _db.Orders.Update(order);
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConcurrencyConflictException(
+                $"O pedido '{order.Id}' foi modificado por outro processo. Consulte novamente e tente de novo.");
+        }
     }
 }

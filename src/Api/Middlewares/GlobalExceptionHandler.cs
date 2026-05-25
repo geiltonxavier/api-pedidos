@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Core.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         var statusCode = exception switch
         {
             ArgumentException => StatusCodes.Status400BadRequest,
+            ConcurrencyConflictException => StatusCodes.Status409Conflict,
             InvalidOperationException => StatusCodes.Status422UnprocessableEntity,
             KeyNotFoundException => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status500InternalServerError
@@ -57,6 +59,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
     {
         400 => "Requisição inválida",
         404 => "Recurso não encontrado",
+        409 => "Conflito de concorrência",
         422 => "Operação inválida",
         _ => "Erro interno do servidor"
     };

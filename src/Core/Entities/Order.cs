@@ -15,6 +15,7 @@ public class Order
     public decimal SubTotal { get; private set; }
     public decimal Total { get; private set; }
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public uint RowVersion { get; private set; }
 
     public void AddItem(OrderItem item) => _items.Add(item);
 
