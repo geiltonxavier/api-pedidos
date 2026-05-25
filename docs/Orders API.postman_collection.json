@@ -175,15 +175,14 @@
                   "    pm.expect(json).to.have.property('subTotal');",
                   "    pm.expect(json).to.have.property('total');",
                   "    pm.expect(json).to.have.property('discountValue');",
+                  "    pm.expect(json).to.have.property('createdAt');",
                   "    pm.expect(json).to.have.property('items');",
                   "    pm.expect(json.items).to.be.an('array');",
                   "});",
                   "pm.test('Salva itemId do primeiro item', () => {",
                   "    const json = pm.response.json();",
                   "    if (json.items && json.items.length > 0) {",
-                  "        // Nota: o itemId não é retornado no DTO atual",
-                  "        // Se for adicionado, descomente a linha abaixo",
-                  "        // pm.collectionVariables.set('itemId', json.items[0].id);",
+                  "        pm.collectionVariables.set('itemId', json.items[0].id);",
                   "    }",
                   "});"
                 ]
