@@ -125,7 +125,7 @@ dotnet test OrdersApi.slnx
 | Feature | Descrição |
 |---------|-----------|
 | **Clean Architecture** | Camadas Core → Application → Infrastructure → Api |
-| **Strategy Pattern** | Cálculo de desconto desacoplado com `IDiscountStrategy` + `DiscountFactory` |
+| **Strategy Pattern** | Cálculo de preço desacoplado com `IPricingStrategy` + `DiscountFactory` |
 | **EF Core InMemory** | Banco de dados em memória (sem dependência externa) |
 | **API Versioning** | Versionamento por URL segment (`/v1/orders`) com `Asp.Versioning.Mvc` |
 | **Rate Limiting** | Fixed Window — 100 requests/minuto por IP (built-in .NET) |
@@ -142,7 +142,7 @@ dotnet test OrdersApi.slnx
 
 ## Testes unitários
 
-10 cenários cobrindo a camada de serviço com `FakeOrderRepository`:
+11 cenários cobrindo a camada de serviço com `FakeOrderRepository`:
 
 | # | Cenário |
 |---|---------|
@@ -154,12 +154,26 @@ dotnet test OrdersApi.slnx
 | 6 | Atualizar item existente recalcula totais |
 | 7 | Atualizar item inexistente retorna `null` |
 | 8 | Remover item existente retorna `true` |
-| 9 | Remover item inexistente retorna `false` |
-| 10 | Atualizar item de pedido **Express** recalcula acréscimo |
+| 9 | Remover último item do pedido é bloqueado (invariante de domínio) |
+| 10 | Remover item inexistente retorna `false` |
+| 11 | Atualizar item de pedido **Express** recalcula acréscimo |
 
 ## Postman
 
 Collection completa disponível em `docs/Orders API.postman_collection.json`. Importe no Postman para testar todos os endpoints (10 requests com scripts de validação).
+
+## Segurança — Autenticação
+
+Esta API **não implementa autenticação** de forma intencional, adicionar JWT com chave simétrica hardcoded ("auth fake") dá uma falsa sensação de segurança e não agrega valor real, pelo contrário, polui o código e dificulta testes.
+
+Em produção, a recomendação é:
+
+1. **Identity Provider externo** (Microsoft Entra ID, Keycloak, Auth0) — a API apenas valida tokens, nunca emite
+2. **JWT Bearer** com `AddAuthentication().AddJwtBearer()` apontando para o IdP
+3. **Authorization policies** por role/scope no controller (`[Authorize(Policy = "orders:write")]`)
+4. **API Gateway** (ex: Azure API Management) como camada adicional de proteção
+
+O código já está preparado com o TODO comentado em `Program.cs` para ativar quando houver um IdP real.
 
 ## Tecnologias
 

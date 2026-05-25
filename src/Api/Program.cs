@@ -24,6 +24,22 @@ builder.Host.UseSerilog((context, config) => config
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// TODO: Em produção, adicionar autenticação JWT Bearer com validação via Identity Provider externo (ex: Microsoft Entra ID, Keycloak).
+// Não implementado neste PoC para manter o foco nas regras de negócio e evitar auth fake com chave simétrica hardcoded.
+// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//     .AddJwtBearer(options =>
+//     {
+//         options.Authority = "https://<identity-provider>";
+//         options.Audience = "orders-api";
+//         options.TokenValidationParameters = new TokenValidationParameters
+//         {
+//             ValidateIssuer = true,
+//             ValidateAudience = true,
+//             ValidateLifetime = true
+//         };
+//     });
+// builder.Services.AddAuthorization();
+
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
