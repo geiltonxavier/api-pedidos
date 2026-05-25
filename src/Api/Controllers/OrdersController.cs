@@ -35,4 +35,28 @@ public class OrdersController : ControllerBase
 
         return Ok(order);
     }
+
+    [HttpPut("{orderId:guid}/items/{itemId:guid}")]
+    public async Task<IActionResult> UpdateItem(Guid orderId, Guid itemId, [FromBody] UpdateItemDto dto)
+    {
+        var result = await _service.UpdateItemAsync(orderId, itemId, dto);
+        if (result is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(result);
+    }
+
+    [HttpDelete("{orderId:guid}/items/{itemId:guid}")]
+    public async Task<IActionResult> RemoveItem(Guid orderId, Guid itemId)
+    {
+        var removed = await _service.RemoveItemAsync(orderId, itemId);
+        if (!removed)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
 }

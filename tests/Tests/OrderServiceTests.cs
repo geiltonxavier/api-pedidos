@@ -29,6 +29,12 @@ public class FakeOrderRepository : IOrderRepository
         _store.TryGetValue(id, out var order);
         return Task.FromResult(order);
     }
+
+    public Task UpdateAsync(Order order)
+    {
+        _store[order.Id] = order;
+        return Task.CompletedTask;
+    }
 }
 
 public class OrderServiceTests

@@ -28,4 +28,10 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.Items)
             .SingleOrDefaultAsync(o => o.Id == id);
     }
+
+    public async Task UpdateAsync(Order order)
+    {
+        _db.Orders.Update(order);
+        await _db.SaveChangesAsync();
+    }
 }
