@@ -1,4 +1,4 @@
-# Orders API — .NET 10
+# Orders API - .NET 10
 
 API para gerenciamento de pedidos de uma loja online, com cálculo automático de descontos por tipo de pedido.
 
@@ -17,7 +17,7 @@ tests/
 └── Tests/          → Testes unitários (11) e de integração (18) com xUnit
 ```
 
-## Regras de negócio — Tipos de pedido
+## Regras de negócio - Tipos de pedido
 
 Cada pedido possui um tipo que determina o cálculo do valor total (padrão **Strategy Pattern**):
 
@@ -31,7 +31,7 @@ Cada pedido possui um tipo que determina o cálculo do valor total (padrão **St
 
 > Base URL: `http://localhost:5024/v1`
 
-### `POST /v1/orders` — Criar pedido
+### `POST /v1/orders` - Criar pedido
 
 ```json
 // Request
@@ -48,9 +48,9 @@ Cada pedido possui um tipo que determina o cálculo do valor total (padrão **St
 ```
 
 **Headers opcionais:**
-- `Idempotency-Key: <uuid>` — evita criação duplicada em caso de retry
+- `Idempotency-Key: <uuid>` - evita criação duplicada em caso de retry
 
-### `GET /v1/orders/{orderId}` — Consultar resumo do pedido
+### `GET /v1/orders/{orderId}` - Consultar resumo do pedido
 
 ```json
 // Response (200 OK)
@@ -68,22 +68,22 @@ Cada pedido possui um tipo que determina o cálculo do valor total (padrão **St
 }
 ```
 
-### `PUT /v1/orders/{orderId}/items/{itemId}` — Atualizar item
+### `PUT /v1/orders/{orderId}/items/{itemId}` - Atualizar item
 
 ```json
 // Request
 { "description": "Camiseta G", "quantity": 3, "unitPrice": 54.90 }
 
-// Response (200 OK) — retorna o resumo atualizado do pedido
+// Response (200 OK) - retorna o resumo atualizado do pedido
 ```
 
-### `DELETE /v1/orders/{orderId}/items/{itemId}` — Remover item
+### `DELETE /v1/orders/{orderId}/items/{itemId}` - Remover item
 
 ```
 // Response (204 No Content)
 ```
 
-### `GET /health` — Health check
+### `GET /health` - Health check
 
 ```
 // Response (200 OK)
@@ -129,7 +129,7 @@ dotnet test OrdersApi.slnx
 | **Strategy Pattern** | Cálculo de preço desacoplado com `IPricingStrategy` + `DiscountFactory` |
 | **EF Core InMemory** | Banco de dados em memória (sem dependência externa) |
 | **API Versioning** | Versionamento por URL segment (`/v1/orders`) com `Asp.Versioning.Mvc` |
-| **Rate Limiting** | Fixed Window — 100 requests/minuto por IP (built-in .NET) |
+| **Rate Limiting** | Fixed Window - 100 requests/minuto por IP (built-in .NET) |
 | **FluentValidation** | Validação de DTOs com mensagens em português e resposta `400 ProblemDetails` |
 | **Global Exception Handler** | `IExceptionHandler` com `ProblemDetails` (RFC 9457) e Correlation ID |
 | **Idempotência** | Header `Idempotency-Key` no POST previne pedidos duplicados |
@@ -139,18 +139,18 @@ dotnet test OrdersApi.slnx
 | **CancellationToken** | Propagado em toda a cadeia (Controller → Service → Repository) |
 | **Swagger UI** | Documentação interativa dos endpoints via OpenAPI |
 | **Dockerfile** | Multi-stage build (SDK → runtime), pronto para CI/CD |
-| **Concorrência Otimista** | `RowVersion` no EF Core — conflitos retornam `409 Conflict` |
+| **Concorrência Otimista** | `RowVersion` no EF Core - conflitos retornam `409 Conflict` |
 | **Testes de Integração** | `WebApplicationFactory` testando a API end-to-end (18 cenários) |
 | **GitHub Actions CI** | Pipeline de build + test automático em push/PR |
 
-## Decisões de arquitetura — o que não foi incluído (e por quê)
+## Decisões de arquitetura - o que não foi incluído (e por quê)
 
 | Padrão | Motivo para não adotar |
 |--------|------------------------|
-| **CQRS / MediatR** | O domínio tem 4 endpoints e fluxo linear — a indirection de handlers/pipelines não se justifica. Trivial de adicionar se o número de use cases crescer. |
+| **CQRS / MediatR** | O domínio tem 4 endpoints e fluxo linear - a indirection de handlers/pipelines não se justifica. Trivial de adicionar se o número de use cases crescer. |
 | **Event Sourcing** | Não há requisito de auditoria temporal nem replay de eventos. State-based com EF Core é a escolha pragmática para este domínio. |
 | **OpenTelemetry** | O projeto já tem Serilog estruturado + Correlation ID. Em produção com múltiplos serviços, a troca para OpenTelemetry com exportação para Jaeger/Application Insights seria o próximo passo. |
-| **Contract Tests (Pact)** | Fazem sentido quando há consumers externos com contratos explícitos. API solo sem consumidores conhecidos — o ganho não compensa a complexidade. |
+| **Contract Tests (Pact)** | Fazem sentido quando há consumers externos com contratos explícitos. API solo sem consumidores conhecidos - o ganho não compensa a complexidade. |
 
 ## Testes unitários
 
@@ -158,9 +158,9 @@ dotnet test OrdersApi.slnx
 
 | # | Cenário |
 |---|---------|
-| 1 | Criação de pedido **Standard** — sem desconto |
-| 2 | Criação de pedido **Express** — acréscimo de 15% |
-| 3 | Criação de pedido **Subscription** — desconto de 10% |
+| 1 | Criação de pedido **Standard** - sem desconto |
+| 2 | Criação de pedido **Express** - acréscimo de 15% |
+| 3 | Criação de pedido **Subscription** - desconto de 10% |
 | 4 | Consulta de pedido com validação de `DiscountValue` |
 | 5 | Consulta de pedido inexistente retorna `null` |
 | 6 | Atualizar item existente recalcula totais |
@@ -199,13 +199,13 @@ dotnet test OrdersApi.slnx
 
 Collection completa disponível em `docs/Orders API.postman_collection.json`. Importe no Postman para testar todos os endpoints (10 requests com scripts de validação).
 
-## Segurança — Autenticação
+## Segurança - Autenticação
 
 Esta API **não implementa autenticação** de forma intencional, adicionar JWT com chave simétrica hardcoded ("auth fake") dá uma falsa sensação de segurança e não agrega valor real, pelo contrário, polui o código e dificulta testes.
 
 Em produção, a recomendação é:
 
-1. **Identity Provider externo** (Microsoft Entra ID, Keycloak, Auth0) — a API apenas valida tokens, nunca emite
+1. **Identity Provider externo** (Microsoft Entra ID, Keycloak, Auth0) - a API apenas valida tokens, nunca emite
 2. **JWT Bearer** com `AddAuthentication().AddJwtBearer()` apontando para o IdP
 3. **Authorization policies** por role/scope no controller (`[Authorize(Policy = "orders:write")]`)
 4. **API Gateway** (ex: Azure API Management) como camada adicional de proteção
