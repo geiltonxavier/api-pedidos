@@ -1,15 +1,22 @@
 using Core.Entities;
 using Core.Enums;
+using Microsoft.Extensions.Options;
 
 namespace Application.Discounts;
 
 public sealed class ExpressDiscount : IPricingStrategy
 {
+    private readonly decimal _multiplier;
+
+    public ExpressDiscount(IOptions<PricingOptions> options)
+    {
+        _multiplier = 1 + (options.Value.ExpressSurchargePercent / 100m);
+    }
+
     public OrderType Type => OrderType.Express;
 
     public decimal CalculateTotal(Order order)
     {
-        // Acréscimo de 15% (taxa de entrega rápida)
-        return order.SubTotal * 1.15m;
+        return order.SubTotal * _multiplier;
     }
 }

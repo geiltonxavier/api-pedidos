@@ -11,6 +11,8 @@ using Core.Entities;
 using Core.Enums;
 using Xunit;
 
+using Microsoft.Extensions.Options;
+
 namespace Tests;
 
 public class FakeOrderRepository : IOrderRepository
@@ -45,11 +47,12 @@ public class OrderServiceTests
 
     private OrderService CreateService()
     {
+        var options = Options.Create(new PricingOptions());
         var strategies = new List<IPricingStrategy>
         {
             new StandardDiscount(),
-            new ExpressDiscount(),
-            new SubscriptionDiscount()
+            new ExpressDiscount(options),
+            new SubscriptionDiscount(options)
         };
         var factory = new DiscountFactory(strategies);
         return new OrderService(factory, _repo);

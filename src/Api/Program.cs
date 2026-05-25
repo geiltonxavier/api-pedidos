@@ -57,6 +57,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<Application.Validators.Crea
 
 builder.Services.AddDbContext<OrdersDbContext>(opt => opt.UseInMemoryDatabase("OrdersDb"));
 
+// pricing configuration
+builder.Services.Configure<Application.Discounts.PricingOptions>(
+    builder.Configuration.GetSection("Pricing"));
+
 // register pricing strategies
 builder.Services.AddSingleton<IPricingStrategy, StandardDiscount>();
 builder.Services.AddSingleton<IPricingStrategy, ExpressDiscount>();
