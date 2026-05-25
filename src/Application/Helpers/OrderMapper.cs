@@ -1,0 +1,30 @@
+using System.Collections.Generic;
+using System.Linq;
+using Application.DTO;
+using Core.Entities;
+
+namespace Application.Helpers;
+
+public static class OrderMapper
+{
+    public static List<OrderItem> ToDomainItems(this CreateOrderDto dto)
+    {
+        return dto.Items.Select(i => new OrderItem
+        {
+            Description = i.Description,
+            Quantity = i.Quantity,
+            UnitPrice = i.UnitPrice
+        }).ToList();
+    }
+
+    public static OrderSummaryDto ToSummaryDto(this Order order)
+    {
+        return new OrderSummaryDto(
+            order.Id,
+            order.Type,
+            order.SubTotal,
+            order.Total,
+            order.Total - order.SubTotal,
+            order.Items.Select(i => new OrderItemDto(i.Description, i.Quantity, i.UnitPrice, i.Total)).ToList());
+    }
+}
