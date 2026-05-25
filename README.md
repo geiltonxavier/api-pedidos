@@ -14,7 +14,7 @@ src/
 └── Api/            → Controllers, middlewares, filtros e configuração da aplicação
 
 tests/
-└── Tests/          → Testes unitários com xUnit (10 cenários)
+└── Tests/          → Testes unitários com xUnit (11 cenários)
 ```
 
 ## Regras de negócio — Tipos de pedido
@@ -60,6 +60,7 @@ Cada pedido possui um tipo que determina o cálculo do valor total (padrão **St
   "subTotal": 129.70,
   "total": 129.70,
   "discountValue": 0.00,
+  "createdAt": "2026-05-25T14:30:00Z",
   "items": [
     { "id": "guid-item", "description": "Camiseta", "quantity": 2, "unitPrice": 49.90, "total": 99.80 },
     { "id": "guid-item", "description": "Boné", "quantity": 1, "unitPrice": 29.90, "total": 29.90 }
