@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Application.Discounts;
 using Application.DTO;
@@ -18,20 +19,20 @@ public class FakeOrderRepository : IOrderRepository
 
     public Order? LastAdded { get; private set; }
 
-    public Task AddAsync(Order order)
+    public Task AddAsync(Order order, CancellationToken ct = default)
     {
         _store[order.Id] = order;
         LastAdded = order;
         return Task.CompletedTask;
     }
 
-    public Task<Order?> GetByIdAsync(Guid id)
+    public Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         _store.TryGetValue(id, out var order);
         return Task.FromResult(order);
     }
 
-    public Task UpdateAsync(Order order)
+    public Task UpdateAsync(Order order, CancellationToken ct = default)
     {
         _store[order.Id] = order;
         return Task.CompletedTask;

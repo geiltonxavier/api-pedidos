@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Core.Entities;
@@ -16,22 +17,22 @@ public class OrderRepository : IOrderRepository
         _db = db;
     }
 
-    public async Task AddAsync(Order order)
+    public async Task AddAsync(Order order, CancellationToken ct = default)
     {
         _db.Orders.Add(order);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
-    public async Task<Order?> GetByIdAsync(Guid id)
+    public async Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _db.Orders
             .Include(o => o.Items)
-            .SingleOrDefaultAsync(o => o.Id == id);
+            .SingleOrDefaultAsync(o => o.Id == id, ct);
     }
 
-    public async Task UpdateAsync(Order order)
+    public async Task UpdateAsync(Order order, CancellationToken ct = default)
     {
         _db.Orders.Update(order);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 }

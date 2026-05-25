@@ -20,16 +20,16 @@ public class OrdersController : ControllerBase
 
     [HttpPost]
     [ServiceFilter(typeof(IdempotencyFilter))]
-    public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken ct)
     {
-        var response = await _service.CreateOrderAsync(dto);
+        var response = await _service.CreateOrderAsync(dto, ct);
         return CreatedAtAction(nameof(GetById), new { orderId = response.OrderId }, response);
     }
 
     [HttpGet("{orderId:guid}")]
-    public async Task<IActionResult> GetById(Guid orderId)
+    public async Task<IActionResult> GetById(Guid orderId, CancellationToken ct)
     {
-        var order = await _service.GetOrderAsync(orderId);
+        var order = await _service.GetOrderAsync(orderId, ct);
         if (order == null)
         {
             return NotFound();
@@ -39,9 +39,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{orderId:guid}/items/{itemId:guid}")]
-    public async Task<IActionResult> UpdateItem(Guid orderId, Guid itemId, [FromBody] UpdateItemDto dto)
+    public async Task<IActionResult> UpdateItem(Guid orderId, Guid itemId, [FromBody] UpdateItemDto dto, CancellationToken ct)
     {
-        var result = await _service.UpdateItemAsync(orderId, itemId, dto);
+        var result = await _service.UpdateItemAsync(orderId, itemId, dto, ct);
         if (result is null)
         {
             return NotFound();
@@ -51,9 +51,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpDelete("{orderId:guid}/items/{itemId:guid}")]
-    public async Task<IActionResult> RemoveItem(Guid orderId, Guid itemId)
+    public async Task<IActionResult> RemoveItem(Guid orderId, Guid itemId, CancellationToken ct)
     {
-        var removed = await _service.RemoveItemAsync(orderId, itemId);
+        var removed = await _service.RemoveItemAsync(orderId, itemId, ct);
         if (!removed)
         {
             return NotFound();

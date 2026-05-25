@@ -39,6 +39,7 @@ builder.Services.AddScoped<IdempotencyFilter>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -56,6 +57,7 @@ app.UseSerilogRequestLogging();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseRouting();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
 
