@@ -11,10 +11,10 @@ namespace Application.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly IOrderRepository? _repo;
+    private readonly IOrderRepository _repo;
     private readonly DiscountFactory _factory;
 
-    public OrderService(DiscountFactory factory, IOrderRepository? repo = null)
+    public OrderService(DiscountFactory factory, IOrderRepository repo)
     {
         _factory = factory;
         _repo = repo;
@@ -26,24 +26,21 @@ public class OrderService : IOrderService
         var order = new Order
         {
             Type = dto.Type,
-            Items = items,
-            SubTotal = items.Sum(i => i.Total)
+            Items = items
         };
 
-        var strategy = _factory.GetStrategy(dto.Type);
-        order.Total = strategy.CalculateTotal(order);
+        order.RecalculateSubTotal();
 
-        if (_repo != null)
-        {
-            await _repo.AddAsync(order);
-        }
+        var strategy = _factory.GetStrategy(dto.Type);
+        order.SetTotal(strategy.CalculateTotal(order));
+
+        await _repo.AddAsync(order);
 
         return new CreatedOrderResponse(order.Id);
     }
 
     public async Task<OrderSummaryDto?> GetOrderAsync(Guid id)
     {
-        if (_repo == null) return null;
         var order = await _repo.GetByIdAsync(id);
         return order?.ToSummaryDto();
     }
