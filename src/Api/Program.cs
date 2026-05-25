@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Api.Filters;
+using Api.Middlewares;
 using Application.Discounts;
 using Application.Interfaces;
 using Application.Services;
@@ -37,6 +38,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseRouting();
 app.MapControllers();
 
