@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Api.Filters;
 using Application.DTO;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [ServiceFilter(typeof(IdempotencyFilter))]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
     {
         var response = await _service.CreateOrderAsync(dto);

@@ -5,6 +5,7 @@
 # @name Create
 POST {{Api_HostAddress}}/orders
 Content-Type: application/json
+Idempotency-Key: {{$guid}}
 
 {
   "type": 0,

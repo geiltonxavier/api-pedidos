@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Api.Filters;
 using Application.Discounts;
 using Application.Interfaces;
 using Application.Services;
@@ -23,6 +24,7 @@ builder.Services.AddSingleton<DiscountFactory>();
 
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IdempotencyFilter>();
 
 var app = builder.Build();
 
